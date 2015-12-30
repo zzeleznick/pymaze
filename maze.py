@@ -48,7 +48,6 @@ class Maze(object):
 
     def showPath(self, explored, path = None, flat = True):
         if path and type(path[0]) == int:
-            # path = set(path[1])
             path = path[1]
         out = deepcopy(self.rep)
         if explored:
@@ -62,10 +61,8 @@ class Maze(object):
         lower = re.compile(r'[a-z]')
         if path:
             for i,j in path:
-                #bar, val = out[i][j]
                 bar, val = out[i][j].split('|')
                 val = val[0]
-                # print i,j, val
                 if digit.match(val):
                     if int(val) == 9:
                         out[i][j] = "|" + 'a'
@@ -113,7 +110,7 @@ class Maze(object):
         st2 = self.end
         goals = [st2, st1]
         if len(self.getNeighbors(st1)) == 0 or len(self.getNeighbors(st2)) == 0:
-            print "No solution. Exit Blocked"
+            # print "No solution. Exit Blocked"
             return None
         explored = {}
         fringe = [ [2, [[st1], [st2]] ] ]
@@ -122,7 +119,7 @@ class Maze(object):
         while fringe:
             # path1, path2 = fringe[-1][1]
             if self.goalCompleted(*fringe[-1][1]):
-                print "Solved"
+                # print "Solved"
                 if self.verbose: print "Remaining fringe: %s" % fringe
                 if self.verbose: print "Solved: %s" % node
                 path1, path2 = fringe[-1][1]
@@ -132,9 +129,7 @@ class Maze(object):
                 return None
             else:
                 turn = counter % 2 # 0 or 1
-                # fringe = sorted(fringe, key = lambda x: x[0] - len(x[1][turn == 0]), reverse = notDFS)
                 fringe = sorted(fringe, key = lambda x: len(x[1][turn]), reverse = True)
-                # print "Fringe", fringe[::-1]
                 num = len(fringe[-1][1][turn])
                 iterations = 1
                 for x in range(len(fringe) - 2, -1, -1):
@@ -192,7 +187,7 @@ class Maze(object):
         pos = self.start
         goal = self.end
         if len(self.getNeighbors(pos)) == 0 or len(self.getNeighbors(goal)) == 0:
-            print "No solution."
+            # print "No solution."
             return None
         explored = {}
         fringe = [ [1, [pos]]   ]  # e.g. [ [1, [(0, 0)] ], ... ]
@@ -202,7 +197,7 @@ class Maze(object):
             # print "counter: %d, f: %s" % (counter, fringe)
             if pos == goal:
                 if self.verbose: print "Remaining fringe: %s" % fringe
-                print "solved."
+                # print "solved."
                 if self.verbose: print "Solved: %s" % node
                 path = node
                 break
@@ -231,7 +226,7 @@ class Maze(object):
                     # since pop takes from the end, we sort to have the smallest at end
 
         if not path:
-            print "this is a hard puzzle..."
+            # print "No solution."
             return explored
         return explored, path
 
@@ -284,8 +279,6 @@ class SpecialMaze(Maze):
         self.getUnvisited = lambda history: tuple([goal in history for goal in self.goals])
         self.unvisitedCount = lambda hst: len([goal for goal in self.goals if goal not in hst])
         self.allowDiag = allowDiag
-        # super(SpecialMaze, self).__init__()
-        # self.rep = super(SpecialMaze, self).genRep()
         dists = [ ( abs(s1[0] - s2[0]), abs(s1[1] - s2[1]) ) \
                  for s1, s2 in list(combinations(self.goals, 2)) ]
         self.xd = sorted(dists, key = lambda x: x[0] )[-1][0]
@@ -371,13 +364,6 @@ class SpecialMaze(Maze):
                     unique[pos] = True
                     flagsPulled = self.getUnvisited(unique.keys())
                     nextState = (flagsPulled, pos)
-                    # print idx, nextState
-                    # xv = connected(visited, first = True)
-                    # yv = connected(visited, first = False)
-                    # TODO: Need to account for more progress perhaps?
-                    # Same number of unique spaces and goal
-                    # But closer to next ...
-                    # max spread?
                     if self.verbose: print "Next state: %s" % list(nextState)
                     # print nextState
                     if nextState not in explored:
@@ -393,17 +379,12 @@ class SpecialMaze(Maze):
                         fringe = sorted(fringe, key = lambda x: x[0], reverse = notDFS)
                         # since pop takes from the end, we sort to have the smallest at end
         if not path:
-            print "this is a hard puzzle..."
+            # print "No solution."
             return None
         else:
             return path
 
-
-if __name__ == '__main__':
-    # mazeSp2 = SpecialMaze(11,11, verbose = False, goals = [(0,0), (0,4), (4,2), (4,4), (0,9), (9,9)])
-    # mazeSp2 = SpecialMaze(11,11, verbose = False, goals = [(0,0), (0,4), (4,2), (4,4), (0,9), (9,9), (10,6)])
-    # mazeSp2 = SpecialMaze(10,10, verbose = False, goals = [(0,0), (0,4), (4,2), (4,4), (0,9), (6,6), (2,4), (4,9), (3,9), (8,1)])
-    # test1()
+def test1():
     maze = Maze(4,4)
     print repr(maze)
     print maze
@@ -413,3 +394,6 @@ if __name__ == '__main__':
     mazeSp = WalledMaze(7,7, walls = [(6,0), (3,4), (4,4), (6,6)], verbose = False)
     print repr(mazeSp)
     print mazeSp
+
+if __name__ == '__main__':
+    test1()

@@ -19,21 +19,19 @@ def generateGoalMaze(rows, cols, goalDensity = .05, allowDiag = False):
     maze = SpecialMaze(rows, cols, goals = goals.keys(), allowDiag = allowDiag, verbose = False)
     return maze
 
-def test0():
-    # maze = generateGoalMaze(20, 20, .0125)
-    maze = generateGoalMaze(25, 25, .006, allowDiag = True) # False)#True)
+def test_Steiner_Maze():
     # maze = generateGoalMaze(10, 10, .05)
-    # goals =  [(7, 1), (9, 9), (0, 0), (4, 8)]
-    # maze = SpecialMaze(10, 10, goals = goals, verbose = False)
+    # maze = generateGoalMaze(20, 20, .0125)
+    maze = generateGoalMaze(25, 25, .006, allowDiag = True)
     path = maze.specialSolve()
     if path:
-        print "Goals at ", maze.goals
+        # print "Goals at ", maze.goals
         print repr(maze)
-        print "Naive Length: %d | Path: %s" %  ( len(set(path[1])), path )
+        # print "Length: %d | Path: %s" %  ( len(set(path[1])), path )
         print maze
         print maze.showPath(explored = None, path = path)
 
-def test1(rows, cols, goals):
+def test_Steiner_Maze_Fixed(rows, cols, goals):
     mazeSp2 = SpecialMaze(rows, cols, verbose = False, goals = goals)
     print repr(mazeSp2)
     print mazeSp2
@@ -41,8 +39,8 @@ def test1(rows, cols, goals):
     path = mazeSp2.specialSolve()
     end1 = time.time()
     # path2 = mazeSp2.specialSolve(costfn = mazeSp2.t2)
-    path2 = None
     # path2 = mazeSp2.specialSolve(costfn = mazeSp2.t3)
+    path2 = None
     end2 = time.time()
     print "Naive Search: %0.7f" % (end1 - start)
     if path2: print "Better Search: %0.7f" % (end2 - end1)
@@ -55,7 +53,7 @@ def test1(rows, cols, goals):
     if path2:
         print mazeSp2.showPath(explored =  None,  path = path2)
 
-def test2():
+def test_simple_special_maze():
     mazeSp = SpecialMaze(7,7, verbose = False)
     maze = Maze(7,7, verbose = False)
     print repr(mazeSp)
@@ -67,17 +65,16 @@ def test2():
     print mazeSp.showPath(explored = explored.keys(), path = path)
     print maze.showPath(explored = explored2.keys(), path = path2)
 
-def test3():
+def test_simple_walled_maze():
     maze = WalledMaze(7,7, walls = [(1,0), (1,1)], verbose = False)
     print repr(maze)
     print maze
     explored, path = maze.solve()
     print maze.showPath(path)
 
-def test4(bfs = True):
-    # maze = generateWalledMaze(10, 10, .3)
+def run_all_searches(bfs = True):
     maze = generateWalledMaze(40, 40, .3)
-    print maze.walls.keys()
+    # print maze.walls.keys()
     print repr(maze)
     print maze
     out = maze.BFSsolve()
@@ -93,24 +90,6 @@ def test4(bfs = True):
         print maze.showPath(explored = out2[0].keys(), path = out2[1])
         print maze.showPath(explored = out3[0].keys(), path = out3[1])
 
-def test5():
-    '''
-    |S|.|X|.|X|
-    |.|.|.|.|X|
-    |.|X|.|.|X|
-    |.|.|.|.|X|
-    |X|.|X|.|E|
-    '''
-    # maze =  WalledMaze(5, 5, [(4,0), (2,1), (0,2), (4,2), (0,4), (1,4), (2,4), (3,4)], verbose = False)
-    walls = [(0, 1), (2, 0), (3, 2), (4, 3), (2, 2), (3, 0), (4, 2)]
-    maze =  WalledMaze(5, 5, walls, verbose = False)
-    print maze.walls.keys()
-    print maze
-    out = maze.solve()
-    if not out:
-        print "Unsolvable Maze"
-    else:
-        print maze.showPath(out[1])
 
 def main(sizes, verbose = False):
     if type(sizes) == tuple: sizes = [sizes]
@@ -146,19 +125,17 @@ def parser():
     print sizes
     main(sizes)
 
-if __name__ == '__main__':
-    print colored('hello', 'red'), colored('world', 'green')
-    args = sys.argv[1:]
-    if len(args) == 1:
-        # goals = [(0,0), (6,0), (3,4), (4,4), (6,6)]
-        goals =  [(0,0), (0,4), (4,2), (4,4), (0,9), (6,6), (2,4), (4,9), (3,9), (8,1)]
-        r,c  = 10, 10
-        # goals = [(0,0), (0,4), (4,2), (4,4), (0,9), (9,9)]
-        # test1(r,c, goals)
-        test0()
 
-    elif len(args) > 1:
-        test2()
+if __name__ == '__main__':
+    # print colored('hello', 'red'), colored('world', 'green')
+    args = sys.argv[1:]
+    if len(args) == 0:
+        run_all_searches()
+    elif len(args) == 1:
+        goals = [(0,0), (6,0), (3,4), (4,4), (6,6)]
+        # goals = [(0,0), (0,4), (4,2), (4,4), (0,9), (9,9)]
+        # goals =  [(0,0), (0,4), (4,2), (4,4), (0,9), (6,6), (2,4), (4,9), (3,9), (8,1)]
+        r,c  = 10, 10
+        test_Steiner_Maze_Fixed(r,c, goals)
     else:
-        test4()
-    # test5()
+        test_Steiner_Maze()
