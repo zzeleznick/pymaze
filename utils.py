@@ -1,5 +1,6 @@
 from itertools import chain, product
 from collections import OrderedDict as OD
+from collections import deque
 import numpy as np
 import random
 
@@ -53,3 +54,41 @@ def get_path(prevs, goal, start):
         path[node] = path[cur] + cost
         cur = node
     return (path[start], path.keys()[::-1])
+
+def bisect_left(a, x, lo=0, hi=None, key=None):
+    if lo < 0:
+        raise ValueError('lo must be non-negative')
+    if hi is None:
+        hi = len(a)
+    if key is None:
+        key = lambda x:x
+    xval = key(x)
+    while lo < hi:
+        mid = (lo+hi)//2
+        if key(a[mid]) < xval: lo = mid+1
+        else: hi = mid
+    return lo
+
+def queue_insert(q, value, key=lambda x: x):
+    new_idx = bisect_left(q, value, key=key)
+    length = len(q)
+    if new_idx < length // 2:
+        q.rotate(-new_idx)
+        q.appendleft(value)
+        q.rotate(new_idx)
+    else:
+        q.rotate(length-new_idx)
+        q.append(value)
+        q.rotate(-(length-new_idx))
+
+def queue_remove(q, value, key=lambda x: x):
+    idx = bisect_left(q, value, key=key)
+    length = len(q)
+    if idx < length // 2:
+        q.rotate(-idx)
+        q.popleft()
+        q.rotate(idx)
+    else:
+        q.rotate((length-1)-idx)
+        q.pop()
+        q.rotate(-(length-1-idx))

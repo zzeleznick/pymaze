@@ -3,7 +3,7 @@ from termcolor import colored # coloring yay
 import time
 import re
 from copy import deepcopy
-from collections import defaultdict
+from collections import defaultdict, deque
 from heapq import heappush, heappop
 # internals #
 from utils import *
@@ -242,10 +242,12 @@ class Maze(object):
         visited = {}
         costs = defaultdict(lambda: float("inf"))
         prevs = defaultdict(lambda: (0, None))
-        fringe = []
-        heappush(fringe, (0, start))
+        # fringe = []
+        # heappush(fringe, (0, start))
+        fringe = deque([(0, start)])
         while fringe:
-            cost, node = heappop(fringe) # pop the min element
+            # cost, node = heappop(fringe) # pop the min element
+            cost, node = fringe.popleft()
             if node == goal:
                 print("Visited %s nodes" % len(visited))
                 return get_path(prevs, goal, start)
@@ -259,8 +261,10 @@ class Maze(object):
                 if next_cost < costs[v]:
                     costs[v] = next_cost
                     prevs[v] = (1, node)
-                    heappush(fringe, (next_cost, v))
-
+                    # heappush(fringe, (next_cost, v))
+                    # fringe.append((next_cost, v))
+                    # fringe = sorted(fringe, key = lambda x: x[0], reverse = notDFS)
+                    queue_insert(fringe, (next_cost, v), key=lambda x: x[0])
         print "No solution."
         return (costs, prevs)
 
@@ -439,7 +443,7 @@ def test1():
     print mazeSp
 
 def test2():
-    mazeSp = WalledMaze.generate(200, 40, .3)
+    mazeSp = WalledMaze.generate(80, 40, .3)
     print repr(mazeSp)
     print mazeSp
     start = time.time()
