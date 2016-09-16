@@ -1,6 +1,8 @@
 from itertools import chain, product
+from collections import OrderedDict as OD
 import numpy as np
 import random
+
 
 def makeWalls(rows, cols, density):
     if density > .8:
@@ -38,3 +40,16 @@ def connected(visited, first = True):
         if size > maxSize:
             maxSize = size
     return maxSize
+
+def get_path(prevs, goal, start):
+    """Gets the path from start to goal using prev"""
+    path = OD({goal: 0})
+    cur = goal
+    while cur != start:
+        (cost, node) = prevs.get(cur)
+        if node == None or node in path:
+            print("ERROR: No path found from %s -> %s" % (start, goal))
+            return (0, None)
+        path[node] = path[cur] + cost
+        cur = node
+    return (path[start], path.keys()[::-1])

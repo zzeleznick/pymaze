@@ -7,22 +7,12 @@ from colorama import init as initColor # use init from Colorama to make Termcolo
 from termcolor import colored
 
 # internals #
-from utils import makeWalls
-
-def generateWalledMaze(rows, cols, wallDensity = .5):
-    walls = makeWalls(rows, cols, wallDensity)
-    maze = WalledMaze(rows, cols, walls = walls, verbose = False)
-    return maze
-
-def generateGoalMaze(rows, cols, goalDensity = .05, allowDiag = False):
-    goals = makeWalls(rows, cols, goalDensity)
-    maze = SpecialMaze(rows, cols, goals = goals.keys(), allowDiag = allowDiag, verbose = False)
-    return maze
+from utils import *
 
 def test_Steiner_Maze():
     # maze = generateGoalMaze(10, 10, .05)
     # maze = generateGoalMaze(20, 20, .0125)
-    maze = generateGoalMaze(25, 25, .006, allowDiag = True)
+    maze = SpecialMaze.generate(25, 25, .006, allowDiag = True)
     path = maze.specialSolve()
     if path:
         # print "Goals at ", maze.goals
@@ -37,21 +27,11 @@ def test_Steiner_Maze_Fixed(rows, cols, goals):
     print mazeSp2
     start = time.time()
     path = mazeSp2.specialSolve()
-    end1 = time.time()
-    # path2 = mazeSp2.specialSolve(costfn = mazeSp2.t2)
-    # path2 = mazeSp2.specialSolve(costfn = mazeSp2.t3)
-    path2 = None
-    end2 = time.time()
-    print "Naive Search: %0.7f" % (end1 - start)
-    if path2: print "Better Search: %0.7f" % (end2 - end1)
+    end = time.time()
+    print "Naive Search: %0.3f ms" % (1000 * (end - start))
     if path:
         print "Naive Length: %d | Path: %s" %  ( len(set(path[1])), path )
-    if path2:
-        print "Better Length: %d | Path: %s" % ( len(set(path2[1])), path2)
-    if path:
         print mazeSp2.showPath(explored = None, path = path)
-    if path2:
-        print mazeSp2.showPath(explored =  None,  path = path2)
 
 def test_simple_special_maze():
     mazeSp = SpecialMaze(7,7, verbose = False)
@@ -73,7 +53,7 @@ def test_simple_walled_maze():
     print maze.showPath(path)
 
 def run_all_searches(bfs = True):
-    maze = generateWalledMaze(40, 40, .3)
+    maze = WalledMaze.generate(40, 40, .3)
     # print maze.walls.keys()
     print repr(maze)
     print maze
@@ -111,7 +91,7 @@ def main(sizes, verbose = False):
         print "Number Explored: %d | Path: %s" % (p2[0], p2[1])
         print "A*  Search: %0.7f" % (end3 - end2)
         print "Number Explored: %d | Path: %s" % (p3[0], p3[1])
-        print maze.showPath(p1)
+        print maze.showPath(explored=None, path=p1)
 
 def parser():
     args = sys.argv[1:]
@@ -127,7 +107,9 @@ def parser():
 
 
 if __name__ == '__main__':
-    # print colored('hello', 'red'), colored('world', 'green')
+    # parser()
+    run_all_searches()
+    """
     args = sys.argv[1:]
     if len(args) == 0:
         run_all_searches()
@@ -139,3 +121,4 @@ if __name__ == '__main__':
         test_Steiner_Maze_Fixed(r,c, goals)
     else:
         test_Steiner_Maze()
+    """

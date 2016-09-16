@@ -3,8 +3,10 @@ from termcolor import colored # coloring yay
 import time
 import re
 from copy import deepcopy
+from collections import defaultdict
+from heapq import heappush, heappop
 # internals #
-from utils import flatten, manhattan, connected
+from utils import *
 
 class Maze(object):
     def __init__(self, rows, cols, start = (0,0), end = None, verbose = True):
@@ -190,7 +192,7 @@ class Maze(object):
             # print "No solution."
             return None
         explored = {}
-        fringe = [ [1, [pos]]   ]  # e.g. [ [1, [(0, 0)] ], ... ]
+        fringe = [ [0, [pos]]   ]  # e.g. [ [1, [(0, 0)] ], ... ]
         path = []
         counter = 0
         while fringe:
@@ -203,7 +205,7 @@ class Maze(object):
                 break
             elif counter > 800000:
                 print "error"
-                return None
+                return {}, None
             else:
                 node = fringe.pop()  # lowest cost node
                 counter += 1
@@ -218,17 +220,49 @@ class Maze(object):
                     neighbors = self.getNeighbors(pos)
                     # print "neighbors for idx: %d are %s" % (counter, neighbors)
                     # cost := distance + heuristic
-                    newNodes = [ [ len(visited) + 1 + costfn(n, goal),
+                    newNodes = [ [ (len(visited)-1) + 1 + costfn(n, goal),
                                   node[1] + [n] ] for n in neighbors ]
                     if self.verbose: print newNodes
                     fringe += newNodes
                     fringe = sorted(fringe, key = lambda x: x[0], reverse = notDFS)
                     # since pop takes from the end, we sort to have the smallest at end
 
+        print "Visited %s nodes" % len(explored)
         if not path:
             # print "No solution."
-            return explored
+            return explored, None
         return explored, path
+
+    def solve2(self, method = 'BFS', costfn = manhattan):
+        costfn = self.costFunction(method, costfn)
+        notDFS = method != 'DFS' # reverse flag
+        start, goal = self.start, self.end
+        if len(self.getNeighbors(start)) == 0 or len(self.getNeighbors(goal)) == 0:
+            return None
+        visited = {}
+        costs = defaultdict(lambda: float("inf"))
+        prevs = defaultdict(lambda: (0, None))
+        fringe = []
+        heappush(fringe, (0, start))
+        while fringe:
+            cost, node = heappop(fringe) # pop the min element
+            if node == goal:
+                print("Visited %s nodes" % len(visited))
+                return get_path(prevs, goal, start)
+            if node in visited:
+                continue
+            visited[node] = True
+            neighbors = self.getNeighbors(node)
+            for v in neighbors:
+                # cost := distance + heuristic
+                next_cost = (cost + 1) + costfn(v, goal)
+                if next_cost < costs[v]:
+                    costs[v] = next_cost
+                    prevs[v] = (1, node)
+                    heappush(fringe, (next_cost, v))
+
+        print "No solution."
+        return (costs, prevs)
 
 class WalledMaze(Maze):
     def __init__(self, rows, cols, walls = [], verbose = True):
@@ -259,6 +293,10 @@ class WalledMaze(Maze):
     def showPath(self, explored, path):
         return Maze.showPath(self, explored = explored, path = path)
 
+    @classmethod
+    def generate(cls, rows, cols, wallDensity = .5):
+        walls = makeWalls(rows, cols, wallDensity)
+        return cls(rows, cols, walls = walls, verbose = False)
 
 class SpecialMaze(Maze):
     def __init__(self, rows, cols, goals = [(0,0)], allowDiag = False, verbose = True):
@@ -299,6 +337,11 @@ class SpecialMaze(Maze):
 
     def showPath(self, explored, path):
         return Maze.showPath(self, explored = explored, path = path)
+
+    @classmethod
+    def generate(cls, rows, cols, goalDensity = .05, allowDiag = False):
+        goals = makeWalls(rows, cols, goalDensity)
+        return cls(rows, cols, goals = goals.keys(), allowDiag = allowDiag, verbose = False)
 
     def goalCompleted(self, visited):
         flags = [(goal in visited) for goal in self.goals]
@@ -395,5 +438,21 @@ def test1():
     print repr(mazeSp)
     print mazeSp
 
+def test2():
+    mazeSp = WalledMaze.generate(200, 40, .3)
+    print repr(mazeSp)
+    print mazeSp
+    start = time.time()
+    explored, path = mazeSp.solve()
+    print "Time Elapsed %0.3f ms" % (1000 * (time.time() - start))
+    print "Solved with path (%s)\n%s" % (path[0], path[1])
+    print mazeSp.showPath(explored = None, path = path)
+    start = time.time()
+    cost, path = mazeSp.solve2()
+    print "Time Elapsed %0.3f ms" % (1000 * (time.time() - start))
+    print "Solved with path (%s)\n%s" % (cost, path)
+    print mazeSp.showPath(explored = None, path = path)
+
 if __name__ == '__main__':
-    test1()
+    # test1()
+    test2()
